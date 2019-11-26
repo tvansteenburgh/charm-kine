@@ -1,0 +1,7 @@
+options:
+  endpoint:
+    type: string
+    default: sqlite
+    description: |
+      Database backend. Options are (...).
+

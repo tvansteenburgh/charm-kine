@@ -1,0 +1,17 @@
+name: kine
+summary: kine
+maintainers:
+    - Tim Van Steenburgh <tim.van.steenburgh@canonical.com>
+description: |
+  Kine
+series:
+  - bionic
+provides:
+  db:
+    interface: etcd
+requires:
+  certificates:
+    interface: tls-certificates
+peers:
+  cluster:
+    interface: kine
