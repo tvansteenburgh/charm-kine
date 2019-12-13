@@ -119,3 +119,5 @@ relations:
   - kubernetes-master:container-runtime
 - - kine:certificates
   - easyrsa:client
+- - etcd:certificates
+  - easyrsa:client

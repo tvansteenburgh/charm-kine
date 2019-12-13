@@ -1,12 +1,15 @@
+#!/usr/bin/env python3
+
 import json
 import subprocess
 
-from juju.charm import CharmBase
-from juju.framework import Object
-from juju.framework import StoredState
+from ops.charm import CharmBase
+from ops.framework import StoredState, Object
+from ops.main import main
+from ops.model import ActiveStatus
 
 
-class Charm(CharmBase):
+class KineCharm(CharmBase):
     state = StoredState()
 
     def __init__(self, framework, parent):
@@ -20,7 +23,7 @@ class Charm(CharmBase):
         framework.observe(self.on.cluster_relation_joined, self)
         framework.observe(self.on.cluster_relation_changed, self)
 
-        self.etcd = EtcdProvider(self, "db")
+        self.etcd = EtcdProvides(self, "db")
         self.tls = TlsRequires(self, "certificates")
 
     def on_install(self, event):
@@ -47,15 +50,7 @@ class Charm(CharmBase):
             subprocess.run(["snap", "set", "kine", f"endpoint={endpoint}"])
             subprocess.run(["snap", "set", "kine", f"dqlite-id={self.get_unit_id()}"])
             subprocess.run(["snap", "restart", "kine"])
-        self.update_peer_status()
-
-    def update_peer_status(self):
-        peer_count = len(self.state.peers) - 1
-        peer = 'peer' if peer_count == 1 else 'peers'
-        set_status('active', f"Healthy with {peer_count} {peer}.")
-
-    def on_db_relation_changed(self, event):
-        subprocess.run(["systemctl", "restart", "snap.kine.kine"])
+        self.framework.model.unit.status = ActiveStatus()
 
     def on_db_relation_changed(self, event):
         ip = event.relation.data[self.framework.model.unit]['ingress-address']
@@ -105,12 +100,7 @@ class Charm(CharmBase):
         return prefix + peers
 
 
-def set_status(status, message):
-    subprocess.run(["status-set", status, message])
-
-
-
-class EtcdProvider(Object):
+class EtcdProvides(Object):
     def __init__(self, parent, key):
         super().__init__(parent, key)
         self.name = key
@@ -133,7 +123,7 @@ class EtcdProvider(Object):
             relation.data[unit]['version'] = version
 
 
-class  TlsRequires(Object):
+class TlsRequires(Object):
     def __init__(self, parent, key):
         super().__init__(parent, key)
         self.name = key
@@ -189,3 +179,7 @@ class  TlsRequires(Object):
                 if not certs_data:
                     continue
                 return list(certs_data.values())[0]
+
+
+if __name__ == '__main__':
+    main(KineCharm)
