@@ -47,8 +47,8 @@ class KineCharm(CharmBase):
         endpoint = self.get_dqlite_endpoint()
         if endpoint != self.state.endpoint:
             self.state.endpoint = endpoint
-            subprocess.run(["snap", "set", "kine", f"endpoint={endpoint}"])
-            subprocess.run(["snap", "set", "kine", f"dqlite-id={self.get_unit_id()}"])
+            subprocess.run(["snap", "set", "kine", f"endpoint={endpoint}",
+                            f"dqlite-id={self.get_unit_id()}"])
             subprocess.run(["snap", "restart", "kine"])
         self.framework.model.unit.status = ActiveStatus()
 
